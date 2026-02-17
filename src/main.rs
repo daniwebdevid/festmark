@@ -48,8 +48,8 @@ fn main() {
         }
 
         // Lists all available notes in the database recursively.
-        Commands::List => {
-            let files = storage::list();
+        Commands::List { path } => {
+            let files = storage::list(path.as_ref());
             
             if files.is_empty() {
                 println!("{} {}", "󰉖".red(), "No notes found in database.".bright_black());
@@ -92,6 +92,67 @@ fn main() {
             
             println!("{}", "─".repeat(40).bright_black());
             println!("{} {} result(s) found", "󰇄".yellow(), results.len());
+        }
+
+        // Removes a specific note from the database.
+        Commands::Remove { title } => {
+            match storage::remove(title) {
+                Ok(_) => {
+                    println!(
+                        "{} Note '{}' deleted successfully.", 
+                        "🗑".red(), 
+                        title.yellow()
+                    );
+                }
+                Err(e) => {
+                    eprintln!(
+                        "{} Failed to delete '{}': {}", 
+                        "✘".red(), 
+                        title.yellow(), 
+                        e.to_string().bright_black()
+                    );
+                }
+            }
+        }
+
+        // Export a database from local
+        Commands::Export { folder, destination } => {
+            let target = if folder == "all" || folder == "." { "" } else { &folder };
+            match storage::export_folder(target, &destination) {
+                Ok(_) => println!("{} Exported '{}' to '{}' successfully.", "📦".green(), folder, destination),
+                Err(e) => eprintln!("{} Export failed: {}", "✘".red(), e),
+            }
+        }
+
+        // Import note 
+        Commands::Import { source } => {
+            match storage::export_folder("", &source) { // reuse logic copy_dir
+                Ok(_) => println!("{} Imported notes from '{}' successfully.", "📥".green(), source),
+                Err(e) => eprintln!("{} Import failed: {}", "✘".red(), e),
+            }
+        }
+
+        // Renames or moves a note, including cross-directory moves.
+        Commands::Move { from, to } => {
+            match storage::rename(from, to) {
+                Ok(_) => {
+                    println!(
+                        "{} Moved: {} {} {}", 
+                        "󰁔".green(), 
+                        from.bright_black(), 
+                        "➔".bright_black(), 
+                        to.yellow()
+                    );
+                }
+                Err(e) => {
+                    eprintln!(
+                        "{} Failed to move '{}': {}", 
+                        "✘".red(), 
+                        from.yellow(), 
+                        e.to_string().bright_black()
+                    );
+                }
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ use clap::{Parser, Subcommand};
 /// fsk allows you to manage personal knowledge directly from the terminal
 /// with support for nested directories and full-text search.
 #[derive(Parser)]
-#[command(name = "fsk", version = "0.1.0", author = "Danydev")]
+#[command(name = "fsk", version = env!("CARGO_PKG_VERSION"), author = "Danydev")]
 #[command(about = "Manage your markdown notes with speed and simplicity", long_about = None)]
 pub struct Args {
     #[command(subcommand)]
@@ -45,7 +45,34 @@ pub enum Commands {
         title: String 
     },
 
-    /// List all notes stored in the knowledge base.
+    /// Remove a note from the database.
+    #[command(alias = "rm", alias = "del", alias = "delete")]
+    Remove { title: String },
+
+    /// Move or rename a note (supports subfolders).
+    #[command(alias = "rename", alias = "mv")]
+    Move { from: String, to: String },
+
+    /// Export a folder or all notes to a specific destination.
+    #[command(alias = "bundle")]
+    Export { 
+        /// The folder to export (use "." or "all" for everything).
+        folder: String,
+        /// The destination path (e.g., "~/Documents/my_archive").
+        destination: String 
+    },
+
+    /// Import notes from an external folder into the database.
+    #[command(alias = "add-archive")]
+    Import { 
+        /// The path to the folder you want to import.
+        source: String 
+    },
+
+    /// List all notes or notes within a specific folder.
     #[command(alias = "ls")]
-    List,
+    List {
+        /// Optional: The folder/path to list (e.g., 'a7x')
+        path: Option<String>,
+    },
 }
